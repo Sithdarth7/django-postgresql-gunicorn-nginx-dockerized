@@ -1,0 +1,135 @@
+{
+    "family": "django-prod-task",
+    "containerDefinitions": [
+      {
+        "name": "web",
+        "image": "022499043855.dkr.ecr.us-east-1.amazonaws.com/django-web:prod-latest",
+        "essential": true,
+        "memory": 512,
+        "cpu": 256,
+        "entryPoint": [
+          "/home/app/web/entrypoint.prod.sh"
+        ],
+        "command": [
+          "gunicorn",
+          "hello_django.wsgi:application",
+          "--bind",
+          "0.0.0.0:8000"
+        ],
+        "mountPoints": [
+          {
+            "sourceVolume": "static_volume",
+            "containerPath": "/home/app/web/staticfiles"
+          },
+          {
+            "sourceVolume": "media_volume",
+            "containerPath": "/home/app/web/mediafiles"
+          }
+        ],
+        "portMappings": [
+          {
+            "containerPort": 8000,
+            "hostPort": 8000
+          }
+        ],
+        "environmentFiles": [
+          {
+            "value": "arn:aws:s3:::simplesat-django-configuration/prod/.env.prod",
+            "type": "s3"
+          }
+        ],
+        "dependsOn": [
+          {
+            "containerName": "db",
+            "condition": "START"
+          }
+        ],
+        "user": "app",
+        "workingDirectory": "/home/app/web",
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": {
+            "awslogs-group": "/ecs/django-prod-task",
+            "awslogs-region": "us-east-1", 
+            "awslogs-stream-prefix": "web"
+          }
+        }
+      },
+      {
+        "name": "db",
+        "image": "postgres:12.0-alpine",
+        "essential": true,
+        "memory": 512,
+        "cpu": 256,
+        "mountPoints": [
+          {
+            "sourceVolume": "postgres_data",
+            "containerPath": "/var/lib/postgresql/data/"
+          }
+        ],
+        "environmentFiles": [
+          {
+            "value": "arn:aws:s3:::simplesat-django-configuration/prod/.env.prod.db",
+            "type": "s3"
+          }
+        ]
+      },
+      {
+        "name": "nginx",
+        "image": "022499043855.dkr.ecr.us-east-1.amazonaws.com/nginx:prod-latest",
+        "essential": true,
+        "memory": 512,
+        "cpu": 256,
+        "portMappings": [
+          {
+            "containerPort": 80,
+            "hostPort": 1337
+          }
+        ],
+        "mountPoints": [
+          {
+            "sourceVolume": "static_volume",
+            "containerPath": "/home/app/web/staticfiles"
+          },
+          {
+            "sourceVolume": "media_volume",
+            "containerPath": "/home/app/web/mediafiles"
+          }
+        ],
+        "dependsOn": [
+          {
+            "containerName": "web",
+            "condition": "START"
+          }
+        ]
+      }
+    ],
+    "volumes": [
+        {
+            "name": "postgres_data",
+            "host": {
+              "sourcePath": "/ecs/postgres_data"
+            }
+          },
+          {
+            "name": "static_volume",
+            "host": {
+              "sourcePath": "/ecs/static_volume"
+            }
+          },
+          {
+            "name": "media_volume",
+            "host": {
+              "sourcePath": "/ecs/media_volume"
+            }
+          }
+    ],
+    "networkMode": "awsvpc",
+    "cpu": "512",
+    "memory": "1024",
+    "requiresCompatibilities": [
+      "FARGATE"
+    ],
+    "taskRoleArn": "arn:aws:iam::022499043855:role/ecsTaskExecutionRole"
+  }
+  
