@@ -1,21 +1,40 @@
-variable "region" {
-  default = "us-east-1"
+variable "DEBUG" {
+  type = string
+  default = "0"
 }
-
-variable "subnet_ids" {
-  description = "List of subnet IDs"
-  type        = list(string)
-  default     = ["subnet-12345678"]
+variable "SECRET_KEY" {
+  type = string
+  default = "change_me"
 }
-
-variable "security_group_ids" {
-  description = "List of security group IDs"
-  type        = list(string)
-  default     = ["sg-12345678"]
+variable "DJANGO_ALLOWED_HOSTS" {
+  type = string
+  default = "localhost 127.0.0.1 [::1]"
 }
-
-variable "vpc_id" {
-  description = "VPC ID"
-  type        = string
-  default     = "vpc-12345678"
+variable "SQL_ENGINE" {
+  type = string
+  default = "django.db.backends.postgresql"
+}
+variable "SQL_DATABASE" {
+  type = string
+  default = "hello_django_prod"
+}
+variable "SQL_USER" {
+  type = string
+  default = "hello_django"
+}
+variable "SQL_PASSWORD" {
+  type = string
+  default = "hello_django"
+}
+variable "SQL_HOST" {
+  type = string
+  default = "db"
+}
+variable "SQL_PORT" {
+  type = string
+  default = "5432"
+}
+variable "DATABASE" {
+  type = string
+  default = "postgres"
 }
